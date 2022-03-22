@@ -12,6 +12,7 @@ public class Enemy : MonoBehaviour
     {
         enemyRB = GetComponent<Rigidbody>();
         player = GameObject.Find("Player");
+        StartCoroutine(LifetimeRoutine());
     }
 
     // Update is called once per frame
@@ -20,4 +21,11 @@ public class Enemy : MonoBehaviour
         Vector3 lookDirection = (player.transform.position - transform.position).normalized;
         enemyRB.AddForce(lookDirection * speed);
     }
+
+    IEnumerator LifetimeRoutine()
+    {
+        yield return new WaitForSeconds(20f);
+        Destroy(gameObject);
+    }
+
 }

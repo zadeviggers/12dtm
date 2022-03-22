@@ -6,7 +6,9 @@ public class PlayerController : MonoBehaviour
 {
     private GameObject cameraFocusPoint;
     private Rigidbody playerRB;
+    public GameObject poweupIndicator;
     private bool hasPowerup = false;
+    private bool canUsePowerup = false;
     public float speed;
     public float powerupExplosionStrength;
     public float powerupExplosionRadius;
@@ -24,6 +26,7 @@ public class PlayerController : MonoBehaviour
     {
         float forwardInput = Input.GetAxis("Vertical");
         playerRB.AddForce(cameraFocusPoint.transform.forward * speed * forwardInput);
+        poweupIndicator.transform.position = new Vector3(transform.position.x, 5, transform.position.z);
     }
 
     // Powerups
@@ -32,18 +35,32 @@ public class PlayerController : MonoBehaviour
         if (other.CompareTag("Powerup"))
         {
             hasPowerup = true;
+            canUsePowerup = true;
+            poweupIndicator.gameObject.SetActive(true);
             Destroy(other.gameObject);
         }
     }
 
+    IEnumerator PowerupCooldownRoutine()
+    {
+        yield return new WaitForSeconds(0.5f);
+        canUsePowerup = true;
+        poweupIndicator.gameObject.SetActive(true);
+    }
+
+
     // Enemy collisions
     void OnCollisionEnter(Collision collision)
     {
-        if (collision.gameObject.CompareTag("Enemy") && hasPowerup)
+        if (collision.gameObject.CompareTag("Enemy") && hasPowerup && canUsePowerup)
         {
-            Debug.Log($"Powerup triggered by {collision.gameObject.name}");
             Rigidbody enemyRigidBody = collision.gameObject.GetComponent<Rigidbody>();
             enemyRigidBody.AddExplosionForce(powerupExplosionStrength, transform.position, powerupExplosionRadius, powerupExplosionUpwardsModifier, ForceMode.Impulse);
+            canUsePowerup = false;
+            poweupIndicator.gameObject.SetActive(false);
+            StartCoroutine(PowerupCooldownRoutine());
         }
     }
+
+
 }
